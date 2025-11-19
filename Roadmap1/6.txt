@@ -1,0 +1,190 @@
+===============================
+LFS EVOLUÍDO – ROADMAP TEMPLATE
+===============================
+
+Projeto: lfs-evoluido
+Objetivo: Construir, instalar e manter um Linux From Scratch evoluído, otimizado, com multilib, glibc/musl, systemd/sysvinit/runit e perfis de otimização agressivos.
+
+Estrutura do projeto:
+
+lfs-evoluido/
+├── configs/
+│   ├── profiles.sh         # Perfis de otimização
+│       # Exemplo:
+│       # AGGRESSIVE="-O3 -march=native -flto -fomit-frame-pointer"
+│       # SAFE="-O2 -pipe"
+│       # CUSTOM="<flags do usuário>"
+├── scripts/
+│   ├── 01_prepare.sh       # Preparação do ambiente
+│   ├── 02_build_toolchain.sh  # Compila binutils, gcc, glibc/musl
+│   ├── 03_build_libs.sh       # Compila bibliotecas essenciais
+│   ├── 04_build_kernel.sh     # Baixa, configura e compila kernel
+│   ├── 05_build_init.sh       # Instala systemd/sysvinit/runit
+│   ├── 06_configure.sh        # Configura usuários, permissões e arquivos essenciais
+│   ├── 07_optimize.sh         # Aplica perfis de otimização agressivos
+│   ├── 08_install.sh          # Copia tudo para raiz final
+│   └── 09_maintenance.sh      # Atualizações e limpeza
+├── packages/          # Tarballs fonte
+│   # Exemplo de pacotes:
+│   # binutils-<versão>.tar.gz
+│   # gcc-<versão>.tar.gz
+│   # glibc-<versão>.tar.gz
+│   # musl-<versão>.tar.gz
+│   # linux-<versão>.tar.gz
+│   # zlib, openssl, ncurses, readline, etc.
+├── build/             # Diretório de compilação temporário
+├── install/           # Raiz temporária do sistema
+└── logs/              # Logs detalhados de cada etapa
+
+---------------------------------------------------
+01_prepare.sh
+---------------------------------------------------
+Funções:
+- Detecta arquitetura do host: `uname -m`
+- Verifica ferramentas essenciais: bash, gcc, make, wget, tar, patch
+- Cria diretórios: build/, install/, logs/, packages/
+- Carrega perfis de otimização de configs/profiles.sh
+- Define variáveis de ambiente:
+    LFS=/mnt/lfs
+    BUILD_DIR=$(pwd)/build
+    INSTALL_DIR=$(pwd)/install
+    LOG_DIR=$(pwd)/logs
+- Escolhe perfil de compilação: AGGRESSIVE, SAFE ou CUSTOM
+
+Exemplo de execução:
+$ ./scripts/01_prepare.sh
+
+---------------------------------------------------
+02_build_toolchain.sh
+---------------------------------------------------
+Funções:
+- Compila binutils:
+    1. Extrai pacote
+    2. Configura com prefix=INSTALL_DIR
+    3. make && make install
+- Compila GCC bootstrap:
+    1. Extrai pacote
+    2. Configura com --enable-languages=c,c++
+    3. make all-gcc && make install-gcc
+- Compila glibc ou musl:
+    1. Decide conforme perfil
+    2. Configura com --prefix=INSTALL_DIR --enable-multilib
+    3. make && make install
+- Aplica flags do perfil selecionado
+- Cria links simbólicos /lib, /lib64
+
+Resultado:
+- Toolchain completo independente do host
+- Base para compilação do resto do sistema
+
+---------------------------------------------------
+03_build_libs.sh
+---------------------------------------------------
+Funções:
+- Lista de bibliotecas essenciais:
+    libs=(zlib openssl ncurses readline libstdc++)
+- Para cada biblioteca:
+    1. Extrai pacote
+    2. Configura com prefix=INSTALL_DIR
+    3. make && make install
+    4. Aplica flags do perfil
+- Suporte a multilib: compila versão 32-bit e 64-bit se necessário
+
+Resultado:
+- Sistema com bibliotecas básicas instaladas na raiz temporária
+
+---------------------------------------------------
+04_build_kernel.sh
+---------------------------------------------------
+Funções:
+- Baixa kernel Linux desejado
+- Aplica patches opcionais de segurança/desempenho
+- Configura kernel com .config baseado no perfil:
+    - AGGRESSIVE: desativa módulos desnecessários, ativa LTO
+    - SAFE: configuração genérica
+    - CUSTOM: definido pelo usuário
+- make bzImage && make modules
+- make install INSTALL_PATH=INSTALL_DIR/boot
+- Gera initramfs
+- Atualiza bootloader (grub ou syslinux)
+
+---------------------------------------------------
+05_build_init.sh
+---------------------------------------------------
+Funções:
+- Instala init system escolhido:
+    systemd:
+        make && make install
+        configura unidades essenciais
+    sysvinit:
+        instala scripts /etc/init.d/
+        configura runlevels padrão
+    runit:
+        instala supervisão de serviços
+- Permite fallback entre init systems
+- Configura serviços essenciais: sshd, cron, network
+
+---------------------------------------------------
+06_configure.sh
+---------------------------------------------------
+Funções:
+- Cria usuários e grupos:
+    root, nobody, daemon, etc.
+- Configura permissões e diretórios
+- Cria arquivos essenciais:
+    /etc/fstab, /etc/passwd, /etc/group, /etc/hosts
+- Configura paths e links simbólicos
+- Configura ld.so.conf e cache do linker
+
+---------------------------------------------------
+07_optimize.sh
+---------------------------------------------------
+Funções:
+- Aplica flags do perfil a bibliotecas e kernel:
+    AGGRESSIVE="-O3 -march=native -flto -fomit-frame-pointer"
+    SAFE="-O2 -pipe"
+    CUSTOM=<usuário>
+- Stripping de binários
+- Benchmarks opcionais de desempenho
+
+---------------------------------------------------
+08_install.sh
+---------------------------------------------------
+Funções:
+- Copia install/ para raiz final ($LFS)
+- Atualiza bootloader com kernel compilado
+- Garante compatibilidade com init system escolhido
+- Cria logs de instalação detalhados
+
+---------------------------------------------------
+09_maintenance.sh
+---------------------------------------------------
+Funções:
+- Atualiza pacotes: baixa novos tarballs, recompila incrementalmente
+- Limpa arquivos temporários e logs antigos
+- Verifica integridade do sistema e serviços
+- Notifica sobre falhas no init ou serviços essenciais
+- Permite atualização de kernel e bibliotecas sem recompilar tudo
+
+---------------------------------------------------
+FLUXO DE EXECUÇÃO
+---------------------------------------------------
+1. ./scripts/01_prepare.sh
+2. ./scripts/02_build_toolchain.sh
+3. ./scripts/03_build_libs.sh
+4. ./scripts/04_build_kernel.sh
+5. ./scripts/05_build_init.sh
+6. ./scripts/06_configure.sh
+7. ./scripts/07_optimize.sh
+8. ./scripts/08_install.sh
+9. ./scripts/09_maintenance.sh
+
+Notas:
+- Cada script gera log detalhado em logs/
+- Perfis de otimização podem ser trocados a qualquer momento
+- Suporte multilib, glibc/musl e múltiplos init systems garantem flexibilidade
+- Sistema é modular e incremental, permitindo builds parciais
+
+===============================
+FIM DO ROADMAP TEMPLATE
+===============================
