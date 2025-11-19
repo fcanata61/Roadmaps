@@ -1,0 +1,197 @@
+ADM-LFS BUILDER — ESPECIFICAÇÃO COMPLETA (TXT)
+------------------------------------------------------------
+Sistema avançado de construção Linux From Scratch totalmente automatizado.
+
+TODOS OS SCRIPTS EM /usr/src/adm/scripts
+Sem subpastas. Sem código. Apenas descrição funcional.
+
+============================================================
+1. adm-core
+Coordena todo o processo. Lê adm.conf, ativa perfil, aciona eventos, gerencia falhas, controla logs, chama todos os módulos. É o núcleo lógico do sistema.
+
+============================================================
+2. profile-selector
+Seleciona e aplica perfis:
+- extreme-optimized
+- desktop
+- minimal
+- cross-toolchain
+- musl
+- glibc
+- multilib
+- systemd
+- sysvinit
+- runit
+Configura flags, prioridades, módulos e comportamentos automáticos conforme perfil.
+
+============================================================
+3. dependency-analyzer
+Analisador profundo de dependências. Gera grafo de build, detecta ciclos, otimiza ordem, ajusta paralelismo, reorganiza pacotes conforme perfis.
+
+============================================================
+4. source-manager
+Gerencia todas as fontes: download com fallback, mirrors, cache, checksum, verificação de versões, revalidação automática.
+
+============================================================
+5. patch-manager
+Detecta, baixa e aplica patches. Ordena patches, testa aplicação, ativa hooks pós-patch, registra todas as modificações.
+
+============================================================
+6. build-env-manager
+Configura ambiente de compilação: flags, variáveis, mounts, arquitetura, controle de recursos, otimizações, configuração inicial da toolchain.
+
+============================================================
+7. chroot-guardian
+Cria chroot seguro: isolamento de rede opcional, bind mounts, verificação de permissões, integridade e desmontagem segura.
+
+============================================================
+8. toolchain-builder
+Constrói toolchain primária e secundária. Suporte completo a musl, glibc, multilib, cross compiling. Reotimização conforme perfil.
+
+============================================================
+9. package-builder
+Compila todos os pacotes usando ordem otimizada. Aplica patches, registra logs, gera binários, ativa hooks, cria pacotes finais em .tar.zst.
+
+============================================================
+10. binpkg-manager
+Gerencia cache binário. Detecta compatibilidade, reutiliza builds, evita recompilações desnecessárias, usa fingerprinting avançado.
+
+============================================================
+11. source-cache-cleaner
+Limpa cache de fontes obsolete, valida checksums, controla armazenamento, gera relatórios.
+
+============================================================
+12. hook-runner
+Executa todos os hooks pré e pós: source, patch, build, rootfs, iso. Permite personalização completa de cada etapa.
+
+============================================================
+13. log-manager
+Administra logs por pacote, logs globais, logs de erro, compressão e relatórios finais.
+
+============================================================
+14. system-cleaner
+Limpeza geral: remove arquivos temporários, restos de build, valida estrutura em /usr/src/adm, preserva apenas dados essenciais.
+
+============================================================
+15. test-suite-runner
+Executa test suites oficiais, testes do kernel, testes de toolchain, sanity checks de libs e bins.
+
+============================================================
+16. config-manager
+Lê e valida adm.conf, aplica overrides, gera perfis customizados, detecta erros e sugere correções.
+
+============================================================
+17. profile-optimizer
+Otimizador automático: ativa PGO, LTO, compressões específicas, configuração de kernel, ajustes finos por arquitetura e por pacote.
+
+============================================================
+18. kernel-builder
+Constrói kernel com configs baseadas em perfil. Aplica patches, compila módulos, gera initramfs, integra microcodes.
+
+============================================================
+19. rootfs-generator
+Monta rootfs completo: diretórios essenciais, libs, bins, configs de init, overlays opcionais, compactação e validação.
+
+============================================================
+20. image-generator
+Gera ISO, tar.zst, squashfs, imagens live, imagens de container e rootfs minimal. Suporta perfis.
+
+============================================================
+21. init-configurator
+Configura init system: systemd, sysvinit, runit. Instala serviços, scripts de boot, targets/runlevels, serviços mínimos.
+
+============================================================
+22. sanity-checker
+Verifica integridade global: permissões, mounts, hashes, existência de binários essenciais, verificação de toolchain, chroot, rootfs e imagens.
+
+============================================================
+23. failure-handler
+Sistema inteligente de tratamento de falhas. Detecta erro exato, tenta reconstrução, evita loops, gera snapshot, registra diagnóstico.
+
+============================================================
+24. resume-engine
+Permite retomada do build: registra etapas concluídas, detecta pacotes já prontos, restaura ambiente, verifica consistência antes de retomar.
+
+============================================================
+25. smart-uninstaller (NOVO)
+Remoção inteligente de pacotes e componentes.
+Funções principais:
+- identifica dependências reversas (pacotes que dependem do removido)
+- impede remoção insegura ou destrutiva
+- remove arquivos instalados individualmente via manifest
+- reordena links simbólicos e bibliotecas após remoção
+- atualiza cache binário e cache de source
+- limpa arquivos órfãos
+- desativa serviços associados
+- registra operação e impacto no sistema
+- trabalha com glibc e musl
+- integra com init system (systemd, sysvinit, runit)
+- permite substituições seguras (swap de versões)
+- integra com sanity-checker para garantir integridade pós-removal
+
+
+============================================================
+ROADMAP COMPLETO DO SISTEMA (SIMPLIFICADO EM TEXTO)
+============================================================
+
+FASE 1 — INICIALIZAÇÃO
+1. adm-core lê adm.conf
+2. profile-selector aplica perfil
+3. config-manager valida configurações
+4. sanity-checker inicial faz verificação de ambiente
+
+FASE 2 — PREPARAÇÃO
+5. build-env-manager configura ambiente
+6. source-manager prepara downloads e cache
+7. patch-manager prepara patches disponíveis
+
+FASE 3 — TOOLCHAIN
+8. chroot-guardian cria chroot seguro
+9. toolchain-builder constrói toolchain inicial
+10. sanity-checker valida toolchain
+
+FASE 4 — DEPENDÊNCIAS E ORDEM DE COMPILAÇÃO
+11. dependency-analyzer constrói grafo de dependências
+12. profile-optimizer ajusta ordem e flags
+
+FASE 5 — COMPILAÇÃO DOS PACOTES
+13. package-builder compila pacotes na ordem ideal
+14. hook-runner executa hooks a cada etapa
+15. binpkg-manager salva binários no cache
+16. test-suite-runner executa testes
+17. log-manager registra tudo
+
+FASE 6 — REMOÇÃO OPCIONAL DE COMPONENTES
+18. smart-uninstaller remove pacotes ou módulos indesejados
+19. sanity-checker verifica integridade após remoção
+
+FASE 7 — ROOTFS
+20. rootfs-generator cria rootfs completo
+21. init-configurator configura init system
+
+FASE 8 — KERNEL
+22. kernel-builder compila e instala kernel + initramfs
+
+FASE 9 — IMAGEM FINAL
+23. image-generator cria ISO, tar.zst ou rootfs final
+24. system-cleaner faz limpeza geral
+25. resume-engine registra estado final
+
+FASE 10 — FINALIZAÇÃO
+26. adm-core gera relatório final
+27. log-manager arquiva logs
+28. sanity-checker faz validação final
+
+
+============================================================
+CONCLUSÃO
+============================================================
+Este arquivo contém:
+- descrição completa de todos os scripts
+- função nova: remoção inteligente (smart-uninstaller)
+- roadmap completo e linear de todo o sistema
+- formato texto simples, sem código, pronto para documentação ou projeto
+
+
+FIM DO ARQUIVO
+------------------------------------------------------------
